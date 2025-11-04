@@ -1,22 +1,28 @@
 from django.shortcuts import get_object_or_404, render
+from django.views.generic import ListView , DetailView
+from matplotlib.style import context
 
 from .models import Post
-
 # Create your views here.
 
-def starting_page(request):
-  latest_posts = Post.objects.all().order_by("-date")[:3]
-  return render(request, "blog/index.html" ,{ "posts": latest_posts })
+class StartingPageView(ListView):
+    model = Post
+    template_name = "blog/index.html"
+    context_object_name = "posts"
+    ordering = ["-date"]
+    paginate_by = 3
 
-def posts(request):
-  all_posts = Post.objects.all().order_by("-date")
-  return render(request, "blog/all-posts.html",{
-    "all_posts": all_posts
-  })
+class PostListView(ListView):
+    model = Post
+    template_name = "blog/all-posts.html"
+    context_object_name = "all_posts"
+    ordering = ["-date"]
 
-def post_detail(request,slug):
-  post = get_object_or_404(Post,slug=slug)
-  return render(request,"blog/post-detail.html",{
-    "post": post,
-    "post_tags": post.tags.all()
-  })
+class PostDetailView(DetailView):
+    model = Post
+    template_name = "blog/post-detail.html"
+    context_object_name = "post"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["post_tags"] = context["post"].tags.all()
+        return context
